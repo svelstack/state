@@ -11,10 +11,10 @@ Base class for all future states.
 ```typescript
 export abstract class FutureState<TValue = any> {
 	/** 
-     * The current value of the state.
-     * 
-     * @throws UninitializedStateError if the state has not yet loaded or is undefined.
-     */
+	 * The current value of the state.
+	 * 
+	 * @throws UninitializedStateError if the state has not yet loaded or is undefined.
+	 */
 	abstract readonly value: TValue;
 
 	/** The current value of the state, or `undefined` if not yet loaded. */
@@ -30,9 +30,9 @@ export abstract class FutureState<TValue = any> {
 	abstract readonly refreshing: boolean;
 
 	/** 
-     * Holds an error message if an error occurred during loading or refreshing, otherwise `undefined`.
-     * Errors are safe to display to the user.
-     */
+	 * Holds an error message if an error occurred during loading or refreshing, otherwise `undefined`.
+	 * Errors are safe to display to the user.
+	 */
 	abstract readonly error: string | undefined;
 
 	protected options: FutureStateOptions;
@@ -97,16 +97,16 @@ Other classes are provided for more specific use cases.
 ```sveltehtml
 <script lang="ts">
 	const store = new AsyncableFutureState(() => fetch('...'));
-    
+	
 	$effect(store.effect());
 </script>
 
 {#if store.loading}
-    <p>Loading...</p>
+	<p>Loading...</p>
 {:else if store.error}
-    <p>{store.error}</p>
+	<p>{store.error}</p>
 {:else}
-    <p>{store.value}</p>
+	<p>{store.value}</p>
 {/if}
 ```
 
@@ -121,7 +121,7 @@ It's the same as using this:
 if (!ssrEnabled) {
 	const umnount = store.mount();
 
-    // ...
+	// ...
 
 	unmount();
 }
@@ -132,12 +132,12 @@ No side effects!
 ```sveltehtml
 
 <script lang="ts">
-    let id = $state(0);
+	let id = $state(0);
 	const store = new AsyncableFutureState(
 		() => fetch(`${id}`) // <--- notice
-    );
-        
-    $effect(store.effect());
+	);
+		
+	$effect(store.effect());
 </script>
 ```
 
@@ -150,9 +150,9 @@ Sometimes you want to load the state only when it's needed. You can use the cond
 
 ```sveltehtml
 <script lang="ts">
-    const mounted = $state(false);
+	const mounted = $state(false);
 	const store = new AsyncableFutureState(() => fetch('...'));
-    
+	
 	$effect(store.effect(() => mounted)); // <--- notice
 </script>
 ```
@@ -167,10 +167,10 @@ If you want to load a state on the server side, you can use the `setValue(...)` 
 	/** @type {{ data: import('./$types').PageData }} */
 	let { data } = $props();
 
-    const store = new AsyncableFutureState(() => fetch('...'))
-      .setValue(data.valueForStore);
-    
-    $effect(store.effect());
+	const store = new AsyncableFutureState(() => fetch('...'))
+	  .setValue(data.valueForStore);
+	
+	$effect(store.effect());
 </script>
 ```
 
@@ -180,15 +180,15 @@ If you need to use side effects, you can use the `FutureRunesInvoker`
 
 ```sveltehtml
 <script lang="ts">
-    let variableWithoutSideEffect = $state(0);
+	let variableWithoutSideEffect = $state(0);
 	let id = $state(1);
 	let page = $state(1);
 	
-    const store = new AsyncableFutureState(new FutureRunesInvoker(
-        (id, page) => fetch(`${id}/${page}/${variableWithoutSideEffect}`),
-        () => [id, page],
-    ));
-    $effect(store.effect());
+	const store = new AsyncableFutureState(new FutureRunesInvoker(
+		(id, page) => fetch(`${id}/${page}/${variableWithoutSideEffect}`),
+		() => [id, page],
+	));
+	$effect(store.effect());
 </script>
 ```
 
@@ -251,15 +251,15 @@ If you have multiple states that need to be loaded before rendering, you can use
 
 <script lang="ts">
 	const store = new ComposableFutureState([
-        new AsyncableFutureState(() => fetch('...')),
-        new AsyncableFutureState(() => fetch('...')),
-    ]);
+		new AsyncableFutureState(() => fetch('...')),
+		new AsyncableFutureState(() => fetch('...')),
+	]);
 	$effect(store.effect());
 </script>
 
 {#if store.loaded}
-    <p>{store.value[0]}</p> <!-- First store -->
-    <p>{store.value[1]}</p> <!-- Second store -->
+	<p>{store.value[0]}</p> <!-- First store -->
+	<p>{store.value[1]}</p> <!-- Second store -->
 {/if}
 ```
 
@@ -277,7 +277,7 @@ or globally:
 
 ```typescript
 FutureState.configure({
-    indicatorsDelay: 300,
+	indicatorsDelay: 300,
 });
 ```
 
@@ -289,9 +289,9 @@ You can use the `exceptionHandler` option to handle errors.
 function myExceptionHandler(error: any) {
 	if (error instanceof ClientSafeError) {
 		return error.message;
-    }
+	}
 
-    return 'An error occurred';
+	return 'An error occurred';
 }
 ```
 
@@ -305,7 +305,7 @@ or globally:
 
 ```typescript
 FutureState.configure({
-    exceptionHandler: myExceptionHandler,
+	exceptionHandler: myExceptionHandler,
 });
 ```
 
@@ -317,26 +317,26 @@ If you need to add custom actions to a state, you can use the `ExtendableFutureS
 class FavoriteArticlesState extends ExtendableFutureState<number[]> {
 	
 	constructor(
-        private articleRepository: ArticleRepository,
-    ) {
+		private articleRepository: ArticleRepository,
+	) {
 		super(() => this.articleRepository.getFavoriteArticles());
-    }
+	}
 		
 	async toggle(id: number) {
-        if (!this.loaded) {
-            return;
-        }
+		if (!this.loaded) {
+			return;
+		}
 
-        if (this.has(id)) {
-            await this.articleRepository.removeFromFavourites(id);
+		if (this.has(id)) {
+			await this.articleRepository.removeFromFavourites(id);
 
-            this.remove(id);
-        } else {
-            await this.articleRepository.addToFavorites(id);
+			this.remove(id);
+		} else {
+			await this.articleRepository.addToFavorites(id);
 
-            this.add(id);
-        }
-    }
+			this.add(id);
+		}
+	}
 
 	add(id: string) {
 		this.modify((favorites) => {
@@ -404,24 +404,24 @@ AwaitAsyncable.svelte
 ```
 
 Usage:
-    
+	
 ```sveltehtml
 <script lang="ts">
 	const store = new AsyncableFutureState(() => fetch('...'));
-    
+	
 	$effect(store.effect());
 </script>
 
 <AwaitAsyncable {store}>
-    {store.value}
+	{store.value}
 </AwaitAsyncable>
 
 <!-- or -->
 
 <AwaitAsyncable {store}>
 	{#snippet children(item)}
-        {item} 
-    {/snippet}
+		{item} 
+	{/snippet}
 </AwaitAsyncable>
 ```
 
@@ -443,10 +443,10 @@ For search functionality we need to debounce the input value. We can use the `De
 		() => [normalizedTerm],
 	), debounceTime);
 	const store = new AsyncableFutureState(invoker);
-    
+	
 	$effect(store.effect(() => {
 		return normalizedTerm.length > 0; // Send request only when the term is not empty
-    }));
+	}));
 </script>
 
 <AwaitAsyncable {store}>
@@ -527,21 +527,21 @@ And the usage:
 <script lang="ts">
 	const store = new AppendableFutureState(
 		(cursor) => {
-            const data = getData(cursor.page);
+			const data = getData(cursor.page);
 			// With CursorPage you can manually set the page and finished state (optional)
-            cursor.setNextPage(data.page || cursor.page + 1, data.isLastPage);
-          
+			cursor.setNextPage(data.page || cursor.page + 1, data.isLastPage);
+		  
 			return data.values;
-        },
+		},
 		new PageCursor(), // or use new PredictablePageCursor() for better predictability if each page has the same number of items.
 	);
 	$effect(store.effect());
 </script>
 
 <AwaitAsyncable {store}>
-    {#each store.value as item}
-        <!-- Render the item -->
-    {/each}
+	{#each store.value as item}
+		<!-- Render the item -->
+	{/each}
   
 	<InfiniteScroll {store} />
 </AwaitAsyncable>
