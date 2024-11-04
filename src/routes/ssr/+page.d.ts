@@ -1,0 +1,2 @@
+/// <reference types="@sveltejs/kit" />
+export function load(event: import("@sveltejs/kit").LoadEvent<import("./$types").RouteParams, null, {}, "/ssr">): void | (Omit<App.PageData, import("./$types").RequiredKeys<T>> & Partial<Pick<App.PageData, never>> & Record<string, any>) | Promise<void | (Omit<App.PageData, import("./$types").RequiredKeys<T>> & Partial<Pick<App.PageData, never>> & Record<string, any>)>;
