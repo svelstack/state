@@ -1,8 +1,29 @@
-# The only Svelte Promise/Future states you will need 
+# The only Svelte Promise/Future states you will need
 
 ```shell
 npm i @svelstack/state
 ```
+
+<!-- TOC -->
+* [The only Svelte Promise/Future states you will need](#the-only-svelte-promisefuture-states-you-will-need)
+  * [FutureState](#futurestate)
+  * [Usage](#usage)
+    * [Is $effect() calling safe and fast?](#is-effect-calling-safe-and-fast)
+    * [Lazy loading](#lazy-loading)
+    * [Server side rendering](#server-side-rendering)
+    * [Side effects](#side-effects)
+    * [Deep reactivity](#deep-reactivity)
+    * [Load everything or nothing](#load-everything-or-nothing)
+    * [My API is very fast and I want to avoid flickering](#my-api-is-very-fast-and-i-want-to-avoid-flickering)
+    * [I want to display more helpful error messages to the user](#i-want-to-display-more-helpful-error-messages-to-the-user)
+    * [Extending functionality of FutureState](#extending-functionality-of-futurestate)
+* [Best Practices](#best-practices)
+  * [Await as component](#await-as-component)
+* [Examples](#examples)
+  * [Search](#search)
+  * [Infinite scroll](#infinite-scroll)
+<!-- TOC -->
+
 
 ## FutureState
 
@@ -92,7 +113,7 @@ Other classes are provided for more specific use cases.
 `ComposableFutureState` is a more advanced class that allows you to compose multiple future states into a single state.
 `ExtendableFutureState` allows you to create a future state with custom actions.
 
-### Basic usage
+## Usage
 
 ```svelte
 <script lang="ts">
@@ -150,7 +171,7 @@ Sometimes you want to load the state only when it's needed. You can use the cond
 
 ```svelte
 <script lang="ts">
-    const mounted = $state(false);
+    let mounted = $state(false);
     const store = new AsyncableFutureState(() => fetch('...'));
     
     $effect(store.effect(() => mounted)); // <--- notice
