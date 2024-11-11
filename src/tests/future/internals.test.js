@@ -34,7 +34,7 @@ test('autosubscribe', () => {
 	const subscriber = createSubscriber();
 	const internals = new FutureStateMountInternals();
 
-	internals.autoSubscribe(subscriber.subscribe);
+	internals.autoSubscribe(subscriber.subscribe, true);
 	internals.onMount(() => {
 		onMountCalled++;
 

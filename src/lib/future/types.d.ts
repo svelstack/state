@@ -86,7 +86,7 @@ export class FutureStateMountInternals {
 
 	onMount(fn: () => (() => void) | void): void;
 
-	autoSubscribe(fn: () => (() => void) | void): void;
+	autoSubscribe(fn: () => (() => void) | void, refreshOnChange = false): void;
 
 	mounted(load?: () => void, refresh?: () => void): () => void;
 

@@ -1,6 +1,8 @@
 import { FuturePlainInvoker } from '$lib';
 import { delayed } from '$lib/utils/helpers.js';
 
+const voidFn = () => {};
+
 export class FutureStateMountInternals {
 
 	#mounted = 0;
@@ -10,13 +12,18 @@ export class FutureStateMountInternals {
 		mount: new Set()
 	};
 	subscribers = new Set();
+	weakSubscribers = new Set();
 
 	onMount(fn) {
 		this.events.mount.add(fn);
 	}
 
-	autoSubscribe(subscriber) {
-		this.subscribers.add(subscriber);
+	autoSubscribe(subscriber, refreshOnChange = false) {
+		if (refreshOnChange) {
+			this.subscribers.add(subscriber);
+		} else {
+			this.weakSubscribers.add(subscriber);
+		}
 	}
 
 	mounted(onMount, onChange) {
@@ -32,15 +39,15 @@ export class FutureStateMountInternals {
 			});
 
 			this.subscribers.forEach((subscribe) => {
-				this.#unsubscribers.push(
-					subscribe(() => {
-						if (skipChanges) {
-							return;
-						}
+				this.#unsubscribers.push(subscribe(() => {
+					if (skipChanges) { return }
 
-						onChange?.();
-					})
-				);
+					onChange?.();
+				}));
+			});
+
+			this.weakSubscribers.forEach((fn) => {
+				this.#unsubscribers.push(fn(voidFn));
 			});
 
 			skipChanges = false;
@@ -105,7 +112,7 @@ export class FutureStateInternals extends FutureStateMountInternals {
 		this.#delayTime = options.indicatorsDelay;
 		this.#value = options.deepReactivity ? new DeepReactiveValue() : new ShallowReactiveValue();
 
-		this.autoSubscribe(invoker.subscribe.bind(invoker));
+		this.autoSubscribe(invoker.subscribe.bind(invoker), true);
 	}
 
 	get value() {
