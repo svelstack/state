@@ -76,12 +76,10 @@ export class AsyncableFutureState extends FutureState {
 			);
 		}
 
-		if (this.internals.isFirstRequest) {
-			this.load();
-		}
-
 		return this.internals.mounted(() => {
-			this.refresh();
-		});
+			if (this.internals.isFirstRequest) {
+				this.load();
+			}
+		}, this.refresh.bind(this));
 	}
 }

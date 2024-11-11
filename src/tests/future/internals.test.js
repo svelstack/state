@@ -43,7 +43,7 @@ test('autosubscribe', () => {
 
 	expect(subscriber.subscribed).toBe(false);
 
-	const unmount = internals.mounted(() => changed++);
+	const unmount = internals.mounted(() => {}, () => changed++);
 
 	expect(subscriber.subscribed).toBe(true);
 	expect(changed).toBe(0);

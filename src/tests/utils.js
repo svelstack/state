@@ -1,3 +1,6 @@
+import { AsyncableFutureState } from '$lib';
+import { FutureManualInvoker } from '$lib/future/index.js';
+
 /**
  * Waits for a specified number of milliseconds.
  * @param {number} ms - The number of milliseconds to wait.
@@ -5,6 +8,28 @@
  */
 export function wait(ms) {
 	return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+export function createTestToolsWithInvoker() {
+	const invoker = new FutureManualInvoker((value) => Promise.resolve({
+		called: called++,
+		value,
+	}), [0]);
+
+	let called = 0;
+
+	return {
+		store: new AsyncableFutureState(invoker),
+		invokerCalled: {
+			get value() { return called },
+		},
+		invoker,
+		wait: () => {
+			return new Promise(resolve => {
+				queueMicrotask(() => resolve());
+			});
+		},
+	};
 }
 
 export function createFakePromise() {

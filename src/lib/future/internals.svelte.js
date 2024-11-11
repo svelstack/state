@@ -3,6 +3,9 @@ import { delayed } from '$lib/utils/helpers.js';
 
 export class FutureStateMountInternals {
 
+	#mounted = 0;
+	#unsubscribers = [];
+
 	events = {
 		mount: new Set()
 	};
@@ -16,30 +19,40 @@ export class FutureStateMountInternals {
 		this.subscribers.add(subscriber);
 	}
 
-	mounted(ifChanged) {
-		let skipChanges = true;
-		const callbacks = [];
+	mounted(onMount, onChange) {
+		this.#mounted++;
 
-		this.events.mount.forEach((fn) => {
-			callbacks.push(fn());
-		});
+		if (this.#mounted === 1) {
+			let skipChanges = true;
 
-		this.subscribers.forEach((subscribe) => {
-			callbacks.push(
-				subscribe(() => {
-					if (skipChanges) {
-						return;
-					}
+			onMount();
 
-					ifChanged?.();
-				})
-			);
-		});
+			this.events.mount.forEach((fn) => {
+				this.#unsubscribers.push(fn());
+			});
 
-		skipChanges = false;
+			this.subscribers.forEach((subscribe) => {
+				this.#unsubscribers.push(
+					subscribe(() => {
+						if (skipChanges) {
+							return;
+						}
+
+						onChange?.();
+					})
+				);
+			});
+
+			skipChanges = false;
+		}
 
 		return () => {
-			callbacks.forEach((fn) => fn?.());
+			this.#mounted--;
+
+			if (this.#mounted === 0) {
+				this.#unsubscribers.forEach((fn) => fn?.());
+				this.#unsubscribers = [];
+			}
 		};
 	}
 }
