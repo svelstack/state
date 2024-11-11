@@ -27,6 +27,8 @@ test('createMounter', () => {
 	const secondSubscriber = createSubscriber();
 	let called = 0;
 	let unsubscribed = 0;
+	let unmount;
+	let unmount2;
 
 	const mounter = createMounter(({ unmount }) => {
 			called++;
@@ -39,7 +41,7 @@ test('createMounter', () => {
 	expect(firstSubscriber.called).toBe(0);
 	expect(firstSubscriber.unmounted).toBe(0);
 
-	mounter.mount();
+	unmount = mounter.mount();
 
 	expect(called).toBe(1);
 	expect(unsubscribed).toBe(0);
@@ -50,32 +52,38 @@ test('createMounter', () => {
 	expect(secondSubscriber.called).toBe(1);
 	expect(secondSubscriber.unmounted).toBe(0);
 
-	mounter.mount();
+	unmount2 = mounter.mount();
 
 	expect(called).toBe(1);
 	expect(unsubscribed).toBe(0);
 	expect(firstSubscriber.called).toBe(1);
 	expect(secondSubscriber.called).toBe(1);
 
-	mounter.unmount();
+	unmount();
 
 	expect(called).toBe(1);
 	expect(unsubscribed).toBe(0);
 	expect(firstSubscriber.unmounted).toBe(0);
 	expect(secondSubscriber.unmounted).toBe(0);
 
-	mounter.unmount();
+	unmount2();
 
 	expect(called).toBe(1);
 	expect(unsubscribed).toBe(1);
 	expect(firstSubscriber.unmounted).toBe(1);
 	expect(secondSubscriber.unmounted).toBe(1);
 
-	mounter.mount();
+	unmount = mounter.mount();
 
 	expect(called).toBe(2);
 
-	mounter.unmount();
+	unmount();
 
 	expect(called).toBe(2);
+	expect(unsubscribed).toBe(2);
+
+	unmount();
+
+	expect(called).toBe(2);
+	expect(unsubscribed).toBe(2);
 });

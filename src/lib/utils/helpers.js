@@ -1,8 +1,34 @@
 /**
+ * @param {() => (() => void) | void} initializer
+ */
+export function createMountInitializer(initializer) {
+	let listeners = new Set();
+	let unsubscribe;
+
+	return {
+		get isMounted() { return listeners.size > 0 },
+		mount() {
+			const id = Symbol('id');
+
+			listeners.add(id);
+
+			if (listeners.size === 1) {
+				unsubscribe = initializer();
+			}
+
+			return () => {
+				if (listeners.delete(id) && listeners.size === 0) {
+					unsubscribe?.();
+				}
+			};
+		},
+	};
+}
+
+/**
  * @param {(args: { unmount: import('$lib').DelegateUnmount }) => void} initializer
  */
 export function createMounter(initializer) {
-	let counter = 0;
 	const subscribers = new Set();
 	const unsubscribers = new Set();
 
@@ -10,47 +36,39 @@ export function createMounter(initializer) {
 		if (fn) { unsubscribers.add(fn) }
 	}
 
-	// TODO: prevent unmounting twice?
+	const parent = createMountInitializer(() => {
+		subscribers.forEach((subscribe) => {
+			unmount(subscribe());
+		});
+
+		initializer({
+			unmount,
+		});
+
+		return () => {
+			unsubscribers.forEach((fn) => {
+				try {
+					fn();
+				} catch (error) {
+					console.error(error);
+				}
+			});
+
+			unsubscribers.clear();
+		};
+	});
+
 	return {
+		...parent,
 		/**
 		 * @param {() => import('$lib').UnmountOrVoid} subscribe
 		 */
 		addSubscriber(subscribe) {
 			subscribers.add(subscribe);
 
-			if (counter > 0) {
+			if (parent.isMounted) {
 				unmount(subscribe());
 			}
-		},
-		unmount() {
-			counter--;
-
-			if (counter === 0) {
-				unsubscribers.forEach((fn) => {
-					try {
-						fn();
-					} catch (error) {
-						console.error(error);
-					}
-				});
-
-				unsubscribers.clear();
-			}
-		},
-		mount() {
-			counter++;
-
-			if (counter === 1) {
-				subscribers.forEach((subscribe) => {
-					unmount(subscribe());
-				});
-
-				initializer({
-					unmount,
-				});
-			}
-
-			return this.unmount.bind(this);
 		},
 	};
 }
