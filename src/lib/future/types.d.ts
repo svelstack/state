@@ -180,6 +180,28 @@ export class AsyncableFutureState<TValue = any> extends FutureState<TValue> {
 	// End of abstract stuff
 }
 
+export abstract class FutureStateDecorator<TValue = any> extends FutureState<TValue> {
+
+	protected state: FutureState<TValue>;
+
+	protected constructor(state: FutureState<TValue>);
+
+	// Abstract stuff
+	readonly value: TValue;
+	readonly valueOrUndefined: TValue | undefined;
+	readonly loading: boolean;
+	readonly loaded: boolean;
+	readonly refreshing: boolean;
+	readonly error: string | undefined;
+
+	clear(): void;
+	load(): Promise<TValue>;
+	refresh(clear?: boolean): Promise<void>;
+	effect(conditionFn?: () => boolean): () => void;
+	mount(): () => void;
+	// End of abstract stuff
+}
+
 export class ExtendableFutureState<TValue = any> extends AsyncableFutureState<TValue> {
 	constructor(
 		invoker: (() => Promise<TValue>) | FutureInvoker<TValue>,
