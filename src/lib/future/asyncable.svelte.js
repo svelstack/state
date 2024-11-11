@@ -6,6 +6,13 @@ export class AsyncableFutureState extends FutureState {
 		super(options);
 
 		this.internals = new FutureStateInternals(invoker, this.options);
+		this.internals.onMount(() => {
+			if (this.internals.isFirstRequest) {
+				this.load();
+			}
+		});
+		this.internals.onExternalChange(this.refresh.bind(this));
+
 		this.constructed();
 	}
 
@@ -76,10 +83,6 @@ export class AsyncableFutureState extends FutureState {
 			);
 		}
 
-		return this.internals.mounted(() => {
-			if (this.internals.isFirstRequest) {
-				this.load();
-			}
-		}, this.refresh.bind(this));
+		return this.internals.mounted();
 	}
 }

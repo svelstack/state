@@ -35,6 +35,7 @@ test('autosubscribe', () => {
 	const internals = new FutureStateMountInternals();
 
 	internals.autoSubscribe(subscriber.subscribe, true);
+	internals.onExternalChange(() => changed++);
 	internals.onMount(() => {
 		onMountCalled++;
 
@@ -43,7 +44,7 @@ test('autosubscribe', () => {
 
 	expect(subscriber.subscribed).toBe(false);
 
-	const unmount = internals.mounted(() => {}, () => changed++);
+	const unmount = internals.mounted();
 
 	expect(subscriber.subscribed).toBe(true);
 	expect(changed).toBe(0);

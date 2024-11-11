@@ -1,66 +1,58 @@
 import { FuturePlainInvoker } from '$lib';
-import { delayed } from '$lib/utils/helpers.js';
+import { createMounter, delayed } from '$lib/utils/helpers.js';
 
 const voidFn = () => {};
 
 export class FutureStateMountInternals {
 
-	#mounted = 0;
-	#unsubscribers = [];
+	/** @type {ReturnType<typeof import('$lib/utils/helpers.js').createMounter>} */
+	#mounter;
 
 	events = {
-		mount: new Set()
+		mount: new Set(),
+		externalChange: new Set(),
 	};
-	subscribers = new Set();
-	weakSubscribers = new Set();
+
+	constructor() {
+		this.#mounter = createMounter(({ unmount }) => {
+			const registerUnmount = (fn) => {
+				if (fn) { unmount(fn) }
+			};
+
+			this.events.mount.forEach((fn) => registerUnmount(fn()));
+		});
+	}
 
 	onMount(fn) {
 		this.events.mount.add(fn);
 	}
 
+	onExternalChange(fn) {
+		this.events.externalChange.add(fn);
+	}
+
 	autoSubscribe(subscriber, refreshOnChange = false) {
 		if (refreshOnChange) {
-			this.subscribers.add(subscriber);
+			this.#mounter.addSubscriber(() => {
+				let initialCall = true;
+
+				const unmount = subscriber(() => {
+					if (initialCall) { return }
+
+					this.events.externalChange.forEach((fn) => fn());
+				});
+
+				initialCall = false;
+
+				return unmount;
+			});
 		} else {
-			this.weakSubscribers.add(subscriber);
+			this.#mounter.addSubscriber(() => subscriber(voidFn));
 		}
 	}
 
-	mounted(onMount, onChange) {
-		this.#mounted++;
-
-		if (this.#mounted === 1) {
-			let skipChanges = true;
-
-			onMount();
-
-			this.events.mount.forEach((fn) => {
-				this.#unsubscribers.push(fn());
-			});
-
-			this.subscribers.forEach((subscribe) => {
-				this.#unsubscribers.push(subscribe(() => {
-					if (skipChanges) { return }
-
-					onChange?.();
-				}));
-			});
-
-			this.weakSubscribers.forEach((fn) => {
-				this.#unsubscribers.push(fn(voidFn));
-			});
-
-			skipChanges = false;
-		}
-
-		return () => {
-			this.#mounted--;
-
-			if (this.#mounted === 0) {
-				this.#unsubscribers.forEach((fn) => fn?.());
-				this.#unsubscribers = [];
-			}
-		};
+	mounted() {
+		return this.#mounter.mount();
 	}
 }
 
