@@ -1,4 +1,5 @@
 import { Cursor } from '$lib/future/cursors/types.d.ts';
+import { UnmountOrVoid } from '$lib/types';
 
 export type FutureStateExceptionHandler = (error: any) => string;
 export type FutureStateOptions = {
@@ -84,10 +85,37 @@ export abstract class FutureState<TValue = any> {
 
 export class FutureStateMountInternals {
 
-	onMount(fn: () => (() => void) | void): void;
+	/**
+	 * Registers a function to be called when the state mounts.
+	 * The function fn can optionally return an unmount handler, which will be invoked during the state’s unmount phase.
+	 * This is useful for cleaning up resources or subscriptions.
+	 */
+	onMount(fn: () => UnmountOrVoid): void;
 
-	autoSubscribe(fn: () => (() => void) | void, refreshOnChange = false): void;
+	/**
+	 * Registers a callback function to be called whenever any dependency changes its value.
+	 * This method is used to respond to external changes in dependencies that the state relies on.
+	 * The provided function fn will be triggered each time a relevant change is detected.
+	 */
+	onExternalChange(fn: () => void): void;
 
+	/**
+	 * Adds a subscriber function that will be invoked when the state mounts.
+	 * This method is ideal for lightweight setup tasks required on mount.
+	 */
+	addSubscriber(subscribe: () => void): void;
+
+	/**
+	 * Adds a dependency to the state.
+	 * This method is designed to register dependencies and monitor their changes.
+	 * If a dependency changes, the onExternalChange function will be triggered to handle updates in the state.
+	 */
+	addDependency(subscribe: (fn: () => void) => void): void;
+
+	/**
+	 * Handles the complete mounting process for the state.
+	 * The returned function is meant to be called to unmount the component, performing any necessary cleanup.
+	 */
 	mounted(load?: () => void, refresh?: () => void): () => void;
 
 }

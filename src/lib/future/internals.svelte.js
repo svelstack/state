@@ -1,22 +1,21 @@
 import { FuturePlainInvoker } from '$lib';
 import { createMounter, delayed } from '$lib/utils/helpers.js';
 
-const voidFn = () => {};
-
 export class FutureStateMountInternals {
-
 	/** @type {ReturnType<typeof import('$lib/utils/helpers.js').createMounter>} */
 	#mounter;
 
 	events = {
 		mount: new Set(),
-		externalChange: new Set(),
+		externalChange: new Set()
 	};
 
 	constructor() {
 		this.#mounter = createMounter(({ unmount }) => {
 			const registerUnmount = (fn) => {
-				if (fn) { unmount(fn) }
+				if (fn) {
+					unmount(fn);
+				}
 			};
 
 			this.events.mount.forEach((fn) => registerUnmount(fn()));
@@ -31,24 +30,26 @@ export class FutureStateMountInternals {
 		this.events.externalChange.add(fn);
 	}
 
-	autoSubscribe(subscriber, refreshOnChange = false) {
-		if (refreshOnChange) {
-			this.#mounter.addSubscriber(() => {
-				let initialCall = true;
+	addDependency(subscribe) {
+		this.#mounter.addSubscriber(() => {
+			let initialCall = true;
 
-				const unmount = subscriber(() => {
-					if (initialCall) { return }
+			const unmount = subscribe(() => {
+				if (initialCall) {
+					return;
+				}
 
-					this.events.externalChange.forEach((fn) => fn());
-				});
-
-				initialCall = false;
-
-				return unmount;
+				this.events.externalChange.forEach((fn) => fn());
 			});
-		} else {
-			this.#mounter.addSubscriber(() => subscriber(voidFn));
-		}
+
+			initialCall = false;
+
+			return unmount;
+		});
+	}
+
+	addSubscriber(subscribe) {
+		this.#mounter.addSubscriber(subscribe);
 	}
 
 	mounted() {
@@ -104,7 +105,7 @@ export class FutureStateInternals extends FutureStateMountInternals {
 		this.#delayTime = options.indicatorsDelay;
 		this.#value = options.deepReactivity ? new DeepReactiveValue() : new ShallowReactiveValue();
 
-		this.autoSubscribe(invoker.subscribe.bind(invoker), true);
+		this.addDependency(invoker.subscribe.bind(invoker));
 	}
 
 	get value() {
@@ -118,7 +119,7 @@ export class FutureStateInternals extends FutureStateMountInternals {
 			this.#loaded = true;
 			this.#error = undefined;
 		}
-		
+
 		this.#value.value = val;
 	}
 

@@ -18,7 +18,7 @@ export class ComposableFutureState extends FutureState {
 		this.internals = new FutureStateMountInternals();
 
 		states.forEach((state) => {
-			this.internals.autoSubscribe(state.mount.bind(state));
+			this.internals.addSubscriber(state.mount.bind(state));
 		});
 	}
 
