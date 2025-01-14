@@ -37,7 +37,7 @@ export class PagePointer extends Pointer {
 	/**
 	 * If `finished` is undefined, the value will be predicted.
 	 */
-	setNextPage(page?: number, finished?: boolean): void;
+	setNextPage(page?: number | null, finished?: boolean): void;
 
 	reset(): void;
 

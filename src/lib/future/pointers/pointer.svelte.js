@@ -49,7 +49,7 @@ export class PagePointer extends Pointer {
 
 			this.#next = undefined;
 
-			if (page !== undefined) {
+			if (page != null) {
 				this.#page = page;
 
 				return;
