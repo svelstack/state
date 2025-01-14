@@ -1,11 +1,11 @@
 import { expect, test } from 'vitest';
 import { createFakePromise } from '../utils.js';
-import { AppendableFutureState, PageCursor, PredictablePageCursor, UninitializedStateError } from '$lib';
+import { AppendableFutureState, PagePointer, PredictablePagePointer, UninitializedStateError } from '$lib';
 
 test('appendable default states', () => {
 	const future = new AppendableFutureState(
 		() => Promise.resolve([]),
-		new PageCursor(),
+		new PagePointer(),
 	);
 
 	expect(future.error).toBeUndefined();
@@ -13,19 +13,19 @@ test('appendable default states', () => {
 	expect(future.loaded).toBeFalsy();
 	expect(future.refreshing).toBeFalsy();
 	expect(future.finished).toBeFalsy();
-	expect(future.cursor.page).toBe(1);
+	expect(future.pointer.page).toBe(1);
 	expect(() => future.value).toThrowError(UninitializedStateError);
 	expect(future.valueOrUndefined).toBeUndefined();
 });
 
-test('appendable load method with page cursor', async () => {
+test('appendable load method with page pointer', async () => {
 	let lastPage;
 	const promise = createFakePromise();
-	const future = new AppendableFutureState((cursor) => {
-		lastPage = cursor.page;
+	const future = new AppendableFutureState((pointer) => {
+		lastPage = pointer.page;
 
 		return promise.make();
-	}, new PageCursor());
+	}, new PagePointer());
 
 	expect(lastPage).toBeUndefined();
 
@@ -70,17 +70,17 @@ test('appendable load method with page cursor', async () => {
 	expect(future.finished).toBeTruthy();
 	expect(future.value).toEqual(['foo', 'bar']);
 	expect(lastPage).toBe(3);
-	expect(future.cursor.page).toBe(2);
+	expect(future.pointer.page).toBe(2);
 });
 
-test('appendable with predictable page cursor', async () => {
+test('appendable with predictable page pointer', async () => {
 	let lastPage;
 	const promise = createFakePromise();
-	const future = new AppendableFutureState((cursor) => {
-		lastPage = cursor.page;
+	const future = new AppendableFutureState((pointer) => {
+		lastPage = pointer.page;
 
 		return promise.make();
-	}, new PredictablePageCursor());
+	}, new PredictablePagePointer());
 
 	await makeRequests(future, [
 		['one', 'two'],
@@ -90,17 +90,17 @@ test('appendable with predictable page cursor', async () => {
 
 	expect(future.value.length).toBe(4);
 	expect(lastPage).toBe(3);
-	expect(future.cursor.page).toBe(2);
+	expect(future.pointer.page).toBe(2);
 });
 
-test('appendable with predictable page cursor 2', async () => {
+test('appendable with predictable page pointer 2', async () => {
 	let lastPage;
 	const promise = createFakePromise();
-	const future = new AppendableFutureState((cursor) => {
-		lastPage = cursor.page;
+	const future = new AppendableFutureState((pointer) => {
+		lastPage = pointer.page;
 
 		return promise.make();
-	}, new PredictablePageCursor());
+	}, new PredictablePagePointer());
 
 	await makeRequests(future, [
 		['one', 'two'],
@@ -110,7 +110,7 @@ test('appendable with predictable page cursor 2', async () => {
 
 	expect(future.value.length).toBe(5);
 	expect(lastPage).toBe(3);
-	expect(future.cursor.page).toBe(3);
+	expect(future.pointer.page).toBe(3);
 	expect(future.finished).toBeTruthy();
 });
 
@@ -118,7 +118,7 @@ test('appendable clear method', async () => {
 	const promise = createFakePromise();
 	const future = new AppendableFutureState(
 		() => promise.make(),
-		new PageCursor(),
+		new PagePointer(),
 	);
 
 	await makeRequests(future, [
@@ -128,11 +128,11 @@ test('appendable clear method', async () => {
 	], promise);
 
 	expect(future.finished).toBeTruthy();
-	expect(future.cursor.page).toBe(2);
+	expect(future.pointer.page).toBe(2);
 
 	future.clear();
 
-	expect(future.cursor.page).toBe(1);
+	expect(future.pointer.page).toBe(1);
 	expect(future.finished).toBeFalsy();
 });
 
@@ -140,7 +140,7 @@ test('appendable refresh method', async () => {
 	const promise = createFakePromise();
 	const future = new AppendableFutureState(
 		() => promise.make(),
-		new PageCursor(),
+		new PagePointer(),
 	);
 
 	await makeRequests(future, [
@@ -150,22 +150,22 @@ test('appendable refresh method', async () => {
 	], promise);
 
 	expect(future.finished).toBeTruthy();
-	expect(future.cursor.page).toBe(2);
+	expect(future.pointer.page).toBe(2);
 
 	future.refresh();
 
 	await promise.resolve(['new']);
 
 	expect(future.value).toEqual(['new']);
-	expect(future.cursor.page).toBe(1);
+	expect(future.pointer.page).toBe(1);
 	expect(future.finished).toBeFalsy();
 });
 
-test('page cursor with empty response', async () => {
+test('page pointer with empty response', async () => {
 	const promise = createFakePromise();
 	const future = new AppendableFutureState(
 		() => promise.make(),
-		new PageCursor(),
+		new PagePointer(),
 	);
 
 	await makeRequests(future, [
@@ -174,14 +174,14 @@ test('page cursor with empty response', async () => {
 
 	expect(future.loaded).toBeTruthy();
 	expect(future.finished).toBeTruthy();
-	expect(future.cursor.page).toBe(1);
+	expect(future.pointer.page).toBe(1);
 });
 
-test('predictable page cursor with empty response', async () => {
+test('predictable page pointer with empty response', async () => {
 	const promise = createFakePromise();
 	const future = new AppendableFutureState(
 		() => promise.make(),
-		new PredictablePageCursor(),
+		new PredictablePagePointer(),
 	);
 
 	await makeRequests(future, [
@@ -190,37 +190,37 @@ test('predictable page cursor with empty response', async () => {
 
 	expect(future.loaded).toBeTruthy();
 	expect(future.finished).toBeTruthy();
-	expect(future.cursor.page).toBe(1);
+	expect(future.pointer.page).toBe(1);
 });
 
-test('cursor page setNextPage()', async () => {
+test('pointer page setNextPage()', async () => {
 	const future = new AppendableFutureState(
-		(cursor) => {
-			cursor.setNextPage(cursor.page + 10, cursor.page > 30);
+		(pointer) => {
+			pointer.setNextPage(pointer.page + 10, pointer.page > 30);
 
 			return Promise.resolve(['foo']);
 		},
-		new PageCursor(),
+		new PagePointer(),
 	);
 
 	await future.next();
 
-	expect(future.cursor.page).toBe(1);
+	expect(future.pointer.page).toBe(1);
 	expect(future.finished).toBeFalsy();
 
 	await future.next();
 
-	expect(future.cursor.page).toBe(11);
+	expect(future.pointer.page).toBe(11);
 	expect(future.finished).toBeFalsy();
 
 	await future.next();
 
-	expect(future.cursor.page).toBe(21);
+	expect(future.pointer.page).toBe(21);
 	expect(future.finished).toBeFalsy();
 
 	await future.next();
 
-	expect(future.cursor.page).toBe(31);
+	expect(future.pointer.page).toBe(31);
 	expect(future.finished).toBeTruthy();
 });
 

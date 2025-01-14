@@ -547,14 +547,14 @@ And the usage:
 ```svelte
 <script lang="ts">
     const store = new AppendableFutureState(
-        (cursor) => {
-            const data = getData(cursor.page);
-            // With CursorPage you can manually set the page and finished state (optional)
-            cursor.setNextPage(data.page || cursor.page + 1, data.isLastPage);
+        (pointer) => {
+            const data = getData(pointer.page);
+            // With PagePointer you can manually set the page and finished state (optional)
+            pointer.setNextPage(data.page || pointer.page + 1, data.isLastPage);
           
             return data.values;
         },
-        new PageCursor(), // or use new PredictablePageCursor() for better predictability if each page has the same number of items.
+        new PagePointer(), // or use new PredictablePagePointer() for better predictability if each page has the same number of items.
     );
     $effect(store.effect());
 </script>

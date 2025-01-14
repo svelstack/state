@@ -1,17 +1,17 @@
-export abstract class Cursor {
+export abstract class Pointer {
 
 	/**
-	 * Resets the cursor to its initial state.
+	 * Resets the pointer to its initial state.
 	 */
 	abstract reset(): void;
 
 	/**
-	 * Checks if the cursor has reached the end of pagination.
+	 * Checks if the pointer has reached the end of pagination.
 	 */
 	abstract get finished(): boolean;
 
 	/**
-	 * Called before a request is made. Ideal for setting the next cursor.
+	 * Called before a request is made. Ideal for setting the next pointer.
 	 *
 	 * @internal
 	 */
@@ -26,7 +26,7 @@ export abstract class Cursor {
 
 }
 
-export class PageCursor extends Cursor {
+export class PagePointer extends Pointer {
 
 	readonly page: number;
 
@@ -50,7 +50,7 @@ export class PageCursor extends Cursor {
 /**
  * This class attempts to predict `finished` based on the length of values of the first page and the next page.
  */
-export class PredictablePageCursor extends Cursor {
+export class PredictablePagePointer extends Pointer {
 
 	readonly page: number;
 

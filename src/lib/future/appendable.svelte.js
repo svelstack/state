@@ -2,13 +2,13 @@ import { AsyncableFutureState } from './asyncable.svelte.js';
 import { FutureInvoker } from './invoker.svelte.js';
 
 export class AppendableFutureState extends AsyncableFutureState {
-	#cursor;
+	#pointer;
 	#appending = $state(false);
 
-	constructor(invoker, cursor, options) {
+	constructor(invoker, pointer, options) {
 		super(
 			new AppendableFutureInvoker(invoker, (original) => {
-				const ret = original(this.#cursor);
+				const ret = original(this.#pointer);
 
 				if (ret instanceof FutureInvoker) {
 					return ret.run();
@@ -19,37 +19,37 @@ export class AppendableFutureState extends AsyncableFutureState {
 			options,
 		);
 
-		this.#cursor = cursor;
+		this.#pointer = pointer;
 	}
 
 	async load() {
 		const firstRequest = this.internals.isFirstRequest;
 
 		if (firstRequest) {
-			this.#cursor.beforeRequest(true);
+			this.#pointer.beforeRequest(true);
 		}
 
 		const values = await super.load();
 
 		if (firstRequest) {
-			this.#cursor.afterRequest(values, true);
+			this.#pointer.afterRequest(values, true);
 		}
 
 		return values;
 	}
 
-	get cursor() {
-		return this.#cursor;
+	get pointer() {
+		return this.#pointer;
 	}
 
 	clear() {
 		super.clear();
 
-		this.#cursor.reset();
+		this.#pointer.reset();
 	}
 
 	refresh(clear) {
-		this.#cursor.reset();
+		this.#pointer.reset();
 
 		return super.refresh(clear);
 	}
@@ -75,7 +75,7 @@ export class AppendableFutureState extends AsyncableFutureState {
 					return oldValues;
 				}
 
-				this.#cursor.afterRequest(newValues);
+				this.#pointer.afterRequest(newValues);
 
 				if (!newValues.length) {
 					return oldValues;
@@ -91,7 +91,7 @@ export class AppendableFutureState extends AsyncableFutureState {
 	}
 
 	get finished() {
-		return this.#cursor.finished;
+		return this.#pointer.finished;
 	}
 
 	async next() {
@@ -99,13 +99,13 @@ export class AppendableFutureState extends AsyncableFutureState {
 			return await this.load();
 		}
 
-		if (this.#cursor.finished) {
+		if (this.#pointer.finished) {
 			return;
 		}
 
-		this.#cursor.beforeRequest();
+		this.#pointer.beforeRequest();
 
-		if (this.#cursor.finished) {
+		if (this.#pointer.finished) {
 			return;
 		}
 

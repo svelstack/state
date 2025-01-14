@@ -1,4 +1,4 @@
-import { Cursor } from '$lib/future/cursors/types.d.ts';
+import { Pointer } from '$lib/future/pointers/types.d.ts';
 import { UnmountOrVoid } from '$lib/types';
 
 export type FutureStateExceptionHandler = (error: any) => string;
@@ -213,18 +213,18 @@ export class ExtendableFutureState<TValue = any> extends AsyncableFutureState<TV
 
 export class AppendableFutureState<
 	TValue extends any[] = any[],
-	TCursor extends Cursor = Cursor,
+	TPointer extends Pointer = Pointer,
 > extends AsyncableFutureState<TValue> {
 	readonly appending: boolean;
 	/**
 	 * Indicates if the state has finished loading all available values.
 	 */
 	readonly finished: boolean;
-	readonly cursor: TCursor;
+	readonly pointer: TPointer;
 
 	constructor(
-		factory: (cursor: TCursor) => Promise<TValue> | FutureInvoker<TValue>,
-		cursor: TCursor,
+		factory: (pointer: TPointer) => Promise<TValue> | FutureInvoker<TValue>,
+		pointer: TPointer,
 		options?: Partial<FutureStateOptions>
 	);
 

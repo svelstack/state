@@ -1,14 +1,14 @@
-export class Cursor {
+export class Pointer {
 
 	constructor() {
-		if (new.target === Cursor) {
+		if (new.target === Pointer) {
 			throw new Error('Cannot instantiate abstract class');
 		}
 	}
 
 }
 
-export class PageCursor extends Cursor {
+export class PagePointer extends Pointer {
 
 	#next;
 	#page;
@@ -85,7 +85,7 @@ export class PageCursor extends Cursor {
 
 }
 
-export class PredictablePageCursor extends Cursor {
+export class PredictablePagePointer extends Pointer {
 
 	#previous;
 	#firstPage;
