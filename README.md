@@ -22,6 +22,7 @@ npm i @svelstack/state
 * [Examples](#examples)
   * [Search](#search)
   * [Infinite scroll](#infinite-scroll)
+  * [Load more](#load-more)
 <!-- TOC -->
 
 
@@ -566,4 +567,41 @@ And the usage:
   
     <InfiniteScroll {store} />
 </AwaitAsyncable>
+```
+
+## Load more
+Load more functionality is very common. We can use the `AppendableFutureState` to achieve this.
+
+```svelte
+<script lang="ts" generics="T extends any[]">
+	import type { AppendableFutureState } from '@svelstack/state';
+
+	interface Props {
+		store: AppendableFutureState<T>;
+	}
+
+	let { store }: Props = $props();
+
+	let appending = $state(false); // a bit faster than store.appending, but you can use only store.appending if you want
+
+	async function loadMore() {
+		appending = true;
+
+		try {
+			await store.next();
+		} finally {
+			appending = false;
+		}
+	}
+</script>
+
+{#if !store.finished}
+	<button type="button" disabled={appending || store.appending} onclick={loadMore}>
+		{#if appending || store.appending}
+			Loading...
+		{:else}
+			Load More
+		{/if}
+	</button>
+{/if}
 ```
