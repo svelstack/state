@@ -51,11 +51,10 @@ export abstract class FutureState<TValue = any> {
     /** Indicates if the state is currently in the refreshing process. */
     abstract readonly refreshing: boolean;
 
-    /** 
-     * Holds an error message if an error occurred during loading or refreshing, otherwise `undefined`.
-     * Errors are safe to display to the user.
-     */
-    abstract readonly error: string | undefined;
+    /**
+	 * Holds an error message if an error occurred during loading or refreshing, otherwise `undefined`.
+	 */
+	abstract readonly error: FutureStateError | undefined;
 
     protected options: FutureStateOptions;
 
@@ -126,7 +125,7 @@ Other classes are provided for more specific use cases.
 {#if store.loading}
     <p>Loading...</p>
 {:else if store.error}
-    <p>{store.error}</p>
+    <p>{store.error.message}</p>
 {:else}
     <p>{store.value}</p>
 {/if}
@@ -309,11 +308,15 @@ You can use the `exceptionHandler` option to handle errors.
 
 ```typescript
 function myExceptionHandler(error: any) {
+    let message = 'An error occurred';
+    let details = {} as Record<string, any>;
+	
     if (error instanceof ClientSafeError) {
-        return error.message;
+        message = error.message;
+        details = error.details;
     }
 
-    return 'An error occurred';
+    return { original: error, message, details };
 }
 ```
 
@@ -417,7 +420,7 @@ AwaitAsyncable.svelte
 {:else if store.loaded}
     {@render children(store.value)}
 {:else if store.error}
-    {store.error}
+    {store.error.message}
 {/if}
 
 {#if appending}

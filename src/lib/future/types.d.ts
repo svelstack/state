@@ -1,12 +1,27 @@
 import { Pointer } from '$lib/future/pointers/types.d.ts';
 import { UnmountOrVoid } from '$lib/types';
 
-export type FutureStateExceptionHandler = (error: any) => string;
+export type FutureStateExceptionHandler = (error: any) => FutureStateError;
 export type FutureStateOptions = {
 	exceptionHandler: FutureStateExceptionHandler;
 	indicatorsDelay?: number;
 	deepReactivity?: boolean;
 };
+
+export interface FutureStateError {
+	/**
+	 * The original error value.
+	 */
+	original: any;
+	/**
+	 * The Message is safe to display to the user.
+	 */
+	message: string | undefined;
+	/**
+	 * Additional error details.
+	 */
+	details: Record<string, any>;
+}
 
 export abstract class FutureState<TValue = any> {
 	/**
@@ -30,9 +45,8 @@ export abstract class FutureState<TValue = any> {
 
 	/**
 	 * Holds an error message if an error occurred during loading or refreshing, otherwise `undefined`.
-	 * Errors are safe to display to the user.
 	 */
-	abstract readonly error: string | undefined;
+	abstract readonly error: FutureStateError | undefined;
 
 	protected options: FutureStateOptions;
 
@@ -125,7 +139,7 @@ export class FutureStateInternals<T> {
 	loading: boolean;
 	loaded: boolean;
 	refreshing: boolean;
-	error: string | undefined;
+	error: FutureStateError | undefined;
 
 	constructor(
 		invoker: (() => Promise<T>) | FutureInvoker<T>,
@@ -170,7 +184,7 @@ export class AsyncableFutureState<TValue = any> extends FutureState<TValue> {
 	readonly loading: boolean;
 	readonly loaded: boolean;
 	readonly refreshing: boolean;
-	readonly error: string | undefined;
+	readonly error: FutureStateError | undefined;
 
 	clear(): void;
 	load(): Promise<TValue>;
@@ -192,7 +206,7 @@ export abstract class FutureStateDecorator<TValue = any> extends FutureState<TVa
 	readonly loading: boolean;
 	readonly loaded: boolean;
 	readonly refreshing: boolean;
-	readonly error: string | undefined;
+	readonly error: FutureStateError | undefined;
 
 	clear(): void;
 	load(): Promise<TValue>;
@@ -248,7 +262,7 @@ export class ComposableFutureState<const TStates extends FutureState[]> extends 
 	readonly loading: boolean;
 	readonly loaded: boolean;
 	readonly refreshing: boolean;
-	readonly error: string | undefined;
+	readonly error: FutureStateError | undefined;
 
 	clear(): void;
 	load(): Promise<{

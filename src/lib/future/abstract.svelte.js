@@ -36,12 +36,12 @@ export class FutureState {
 
 /**
  * @param {any} error
- * @return {string}
+ * @return {import('./types.js').FutureStateError}
  */
 function defaultExceptionHandler(error) {
-	if (import.meta.env.MODE === 'development') {
-		console.error(error);
-	}
-
-	return 'Something went wrong. Please try again later.';
+	return {
+		original: error,
+		message: 'Something went wrong. Please try again later.',
+		details: {},
+	};
 }

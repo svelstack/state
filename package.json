@@ -1,7 +1,7 @@
 {
 	"name": "@svelstack/state",
 	"description": "The only Svelte Promise/Future states you will need.",
-	"version": "1.1.0",
+	"version": "1.2.0",
 	"scripts": {
 		"dev": "vite dev",
 		"build": "vite build && npm run package",
