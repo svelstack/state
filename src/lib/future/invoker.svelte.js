@@ -149,13 +149,19 @@ export class FutureRunesInvoker extends BaseFutureInvoker {
 	#invoker;
 	#factory;
 
-	constructor(factory, deps = () => []) {
+	constructor(factory, deps = () => [], options = {}) {
 		super();
 
-		this.#factory = factory;
+		if (!options.reactiveFactory) {
+			this.#factory = factory;
+		}
 
 		$effect(() => {
 			const args = deps();
+
+			if (options.reactiveFactory) {
+				this.#factory = factory();
+			}
 
 			untrack(() => this.#update(...args));
 		});
@@ -171,6 +177,10 @@ export class FutureRunesInvoker extends BaseFutureInvoker {
 		this.#invoker = () => this.#factory(...values);
 
 		this.notify();
+	}
+
+	static reactiveFactory(factory, deps = () => []) {
+		return new FutureRunesInvoker(factory, deps, { reactiveFactory: true });
 	}
 
 }

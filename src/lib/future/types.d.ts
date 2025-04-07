@@ -319,6 +319,11 @@ export class FutureRunesInvoker<
 	constructor(factory: (...args: TArgs) => Promise<TValue>, deps: () => TArgs);
 
 	run(): Promise<TValue>;
+
+	static reactiveFactory<
+		TValue,
+		const TArgs extends any[] = any[]
+	>(factory: () => (...args: TArgs) => Promise<TValue>, deps: () => TArgs): FutureRunesInvoker<TValue, TArgs>;
 }
 
 export class FuturePlainInvoker<TValue = any> extends FutureInvoker<TValue> {
